@@ -6,7 +6,7 @@ import './index.css';
 
 declare const __APP_BUILD_TIMESTAMP__: number;
 
-const LIVE_OTA_BASE_URL = 'https://kurumsalpark.github.io/santralbayi/';
+const LIVE_OTA_BASE_URL = 'https://kurumsalpark.github.io/santralbayi-apk/';
 
 // Canlı OTA Güncelleme Aktarımı: Cihazdaki giriş oturumunu koruyarak en güncel sürümü açar
 try {

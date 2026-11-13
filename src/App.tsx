@@ -5993,7 +5993,7 @@ SİSTEM VE İŞLETME KURALLARI:
 
       const doForceOtaRefresh = () => {
         try {
-          fetch(`https://kurumsalpark.github.io/santralbayi/build-meta.json?t=${Date.now()}`, {
+          fetch(`https://kurumsalpark.github.io/santralbayi-apk/build-meta.json?t=${Date.now()}`, {
             cache: 'no-store'
           }).catch(() => {});
         } catch {}
