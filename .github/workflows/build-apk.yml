@@ -1,0 +1,101 @@
+name: Android APK Oluştur ve Canlı Yayınla
+
+permissions:
+  contents: write
+
+concurrency:
+  group: santralbayi-apk-build
+  cancel-in-progress: true
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main, master ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Kodları Çek
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Node.js Kur
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Java Kur
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '21'
+
+      - name: Klasör Düzenle ve Web Sürümünü Derle
+        run: |
+          mkdir -p src
+          for f in *.tsx *.ts *.css; do
+            if [ -f "$f" ] && [ "$f" != "vite.config.ts" ] && [ "$f" != "capacitor.config.ts" ] && [ "$f" != "server.ts" ]; then
+              if [ ! -f "src/$f" ] || git diff --name-only HEAD~1 HEAD 2>/dev/null | grep -qx "$f"; then
+                cp -f "$f" src/
+              fi
+            fi
+          done
+          npm install
+          npm run build
+
+      - name: Canlı Güncelleme Sunucusunu Yayınla (GitHub Pages OTA)
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./dist
+
+      - name: Android Projesi ve Native Köprü Hazırla
+        run: |
+          npx cap add android || true
+          npx cap sync android
+          mkdir -p android/app/src/main/java/com/santralbayi/app
+          if [ -d "android-bridge" ]; then
+            cp -f android-bridge/*.java android/app/src/main/java/com/santralbayi/app/
+          fi
+          node -e "
+            const fs = require('fs');
+            const p = 'android/app/src/main/AndroidManifest.xml';
+            let xml = fs.readFileSync(p, 'utf8');
+            const perms = [
+              'android.permission.CALL_PHONE',
+              'android.permission.READ_PHONE_STATE',
+              'android.permission.READ_CALL_LOG',
+              'android.permission.READ_CONTACTS',
+              'android.permission.POST_NOTIFICATIONS',
+              'android.permission.FOREGROUND_SERVICE'
+            ];
+            const missing = perms
+              .filter(perm => !xml.includes(perm))
+              .map(perm => '    <uses-permission android:name=\"' + perm + '\" />')
+              .join('\n');
+            if (missing) {
+              xml = xml.replace('<application', missing + '\n\n    <application');
+              fs.writeFileSync(p, xml);
+            }
+          "
+          printf '<?xml version="1.0" encoding="utf-8"?>\n<resources>\n    <color name="colorPrimary">#0f172a</color>\n    <color name="colorPrimaryDark">#0f172a</color>\n    <color name="colorAccent">#0ea5e9</color>\n</resources>\n' > android/app/src/main/res/values/colors.xml
+          printf '<?xml version="1.0" encoding="utf-8"?>\n<resources>\n    <style name="AppTheme" parent="Theme.AppCompat.NoActionBar">\n        <item name="colorPrimary">@color/colorPrimary</item>\n        <item name="colorPrimaryDark">@color/colorPrimaryDark</item>\n        <item name="colorAccent">@color/colorAccent</item>\n        <item name="android:statusBarColor">#0f172a</item>\n        <item name="android:navigationBarColor">#0f172a</item>\n        <item name="android:windowBackground">#0f172a</item>\n    </style>\n    <style name="AppTheme.NoActionBar" parent="Theme.AppCompat.NoActionBar">\n        <item name="windowActionBar">false</item>\n        <item name="windowNoTitle">true</item>\n        <item name="android:background">@null</item>\n        <item name="android:statusBarColor">#0f172a</item>\n        <item name="android:navigationBarColor">#0f172a</item>\n        <item name="android:windowBackground">#0f172a</item>\n    </style>\n    <style name="AppTheme.NoActionBarLaunch" parent="Theme.SplashScreen">\n        <item name="android:background">@drawable/splash</item>\n    </style>\n</resources>\n' > android/app/src/main/res/values/styles.xml
+
+      - name: APK Derle
+        working-directory: android
+        run: |
+          chmod +x gradlew
+          ./gradlew assembleDebug
+
+      - name: Sürümlü APK Kaydet (v1.3)
+        run: |
+          mkdir -p output-apk
+          cp android/app/build/outputs/apk/debug/app-debug.apk output-apk/santralbayi-v1.3.apk
+
+      - name: APK İndirilebilir Yap
+        uses: actions/upload-artifact@v4
+        with:
+          name: santralbayi-v1.3-apk
+          path: output-apk/santralbayi-v1.3.apk
