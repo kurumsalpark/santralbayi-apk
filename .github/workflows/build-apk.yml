@@ -27,13 +27,14 @@ jobs:
           node-version: 22
 
       - name: Java Kur
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           distribution: 'zulu'
           java-version: '21'
 
       - name: Klasör Düzenle ve Web Sürümünü Derle
         run: |
+          find public/assets/aistudio -type f ! -name "*.mp3" -delete 2>/dev/null || true
           mkdir -p src
           for f in *.tsx *.ts *.css; do
             if [ -f "$f" ] && [ "$f" != "vite.config.ts" ] && [ "$f" != "capacitor.config.ts" ] && [ "$f" != "server.ts" ]; then
@@ -44,12 +45,6 @@ jobs:
           done
           npm install
           npm run build
-
-      - name: Canlı Güncelleme Sunucusunu Yayınla (GitHub Pages OTA)
-        uses: peaceiris/actions-gh-pages@v4
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./dist
 
       - name: Android Projesi ve Native Köprü Hazırla
         run: |
@@ -89,10 +84,32 @@ jobs:
           chmod +x gradlew
           ./gradlew assembleDebug
 
-      - name: Sürümlü APK Kaydet (v1.3)
+      - name: Sürümlü APK Kaydet ve Eski Sürümleri Koru (v1.3)
         run: |
           mkdir -p output-apk
           cp android/app/build/outputs/apk/debug/app-debug.apk output-apk/santralbayi-v1.3.apk
+          git fetch origin gh-pages:refs/remotes/origin/gh-pages 2>/dev/null || true
+          for old_apk in $(git ls-tree --name-only origin/gh-pages 2>/dev/null | grep -E '^santralbayi-v.*\.apk$' || true); do
+            git show "origin/gh-pages:$old_apk" > "dist/$old_apk" || true
+          done
+          cp -f output-apk/santralbayi-v1.3.apk dist/santralbayi-v1.3.apk
+          touch dist/.nojekyll
+
+      - name: Canlı Güncelleme ve Doğrudan APK Sunucusunu Yayınla (GitHub Pages)
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./dist
+
+      - name: GitHub Releases Üzerine Doğrudan APK Yayınla
+        uses: softprops/action-gh-release@v2
+        continue-on-error: true
+        with:
+          tag_name: "v1.3.${{ github.run_number }}"
+          name: "SantralBayi v1.3 (Derleme #${{ github.run_number }})"
+          body: "SantralBayi Resmi Android Kurulum Paketi (santralbayi-v1.3.apk) - Doğrudan ZIP'siz İndirme"
+          files: output-apk/santralbayi-v1.3.apk
+          make_latest: true
 
       - name: APK İndirilebilir Yap
         uses: actions/upload-artifact@v4

@@ -2051,7 +2051,7 @@ export default function App() {
         })
       );
 
-      const apkDownloadLink = `https://santralbayi.com/indir/santralbayi-v1.1.apk?ref=${senderCode}&role=${assignRoleTier}`;
+      const apkDownloadLink = `https://kurumsalpark.github.io/santralbayi-apk/santralbayi-v1.3.apk?ref=${senderCode}&role=${assignRoleTier}`;
       const waText = `SantralBayi Sistemi\n\nYetkilendiren: ${senderTitle}\nAtanan Yetki: ${targetRoleLabel}\n\n📲 Size özel tanımlı resmi APK kurulum dosyasını indirin ve tek tıkla hattınızı aktif edin:\n${apkDownloadLink}`;
       const waUrl = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(waText)}`;
       if (isAlreadyRegisteredPerson) {
@@ -22412,7 +22412,7 @@ Asistan: "Tüm parça ve periyodik servis detay notları sistemimize işlenmişt
                                 })();
 
                                 const cleanPhoneDigits = normPhone.length >= 10 ? ('90' + normPhone.slice(-10)) : '';
-                                const apkDownloadLink = `https://santralbayi.com/indir/santralbayi-v1.1.apk?ref=${senderCode}&code=${previewAssignedCode}&role=${assignRoleTier}`;
+                                const apkDownloadLink = `https://kurumsalpark.github.io/santralbayi-apk/santralbayi-v1.3.apk?ref=${senderCode}&code=${previewAssignedCode}&role=${assignRoleTier}`;
                                 const waText = `SantralBayi Sistemi\n\nYetkilendiren: ${senderTitle}\nAtanan Resmi Kod: ${previewAssignedCode}\nAtanan Yetki: ${targetRoleLabel}\n\n📲 Size özel tanımlı resmi APK kurulum dosyasını indirin ve tek tıkla hattınızı aktif edin:\n${apkDownloadLink}`;
                                 const currentWaUrl = cleanPhoneDigits ? `https://wa.me/${cleanPhoneDigits}?text=${encodeURIComponent(waText)}` : '#';
 
@@ -22969,7 +22969,7 @@ Asistan: "Tüm parça ve periyodik servis detay notları sistemimize işlenmişt
                             : generateDottedCode('ESNAF', activeProv || 'İstanbul', subscribers.length + 1);
 
                           const cleanPhoneDigits = normPhone.length >= 10 ? ('90' + normPhone.slice(-10)) : '';
-                          const apkDownloadLink = `https://santralbayi.com/indir/santralbayi-v1.1.apk?ref=${senderCode}&code=${previewAssignedSubCode}`;
+                          const apkDownloadLink = `https://kurumsalpark.github.io/santralbayi-apk/santralbayi-v1.3.apk?ref=${senderCode}&code=${previewAssignedSubCode}`;
                           const waText = `Santralbayi'ye hoş geldiniz!\n\nYetki Veren: ${senderCode}\nAtanan Kodunuz: ${previewAssignedSubCode}\n\n📲 Hemen indirin ve tek tıkla hattınızı aktifleştirin:\n${apkDownloadLink}`;
                           const currentWaUrl = cleanPhoneDigits ? `https://wa.me/${cleanPhoneDigits}?text=${encodeURIComponent(waText)}` : '#';
 
